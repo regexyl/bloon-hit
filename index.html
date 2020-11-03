@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bloon Hit</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.24.1/dist/phaser.min.js"></script>
+    <script src="assets/libraries/matter.min.js"></script>
+    <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+    <link href="assets/css/bloon_hit.css" rel="stylesheet"></link>
+</head>
+<body>
+     <div class="fixed inset-0 flex justify-center items-end text-white select-none">
+         <span class="mb-20" id="scoreText">Score</span>
+    </div>
+     <div class="fixed inset-0 flex justify-center items-end text-white select-none">
+        <span class="text-4xl font-bold mb-10" id="scoreDisplayEl">0</span>
+    </div>
+     <div class="fixed inset-0 flex items-center justify-center text-center">
+         <div class="bg-white max-w-md w-full p-6 rounded-lg" id="modalEl">
+            <img src="assets/images/bloon_hit/bloon-hit.png" class="mb-3 inline" alt="">
+            <div id="instructionsEl" class="mt-6 mb-4"> <!-- style="display: none;" -->
+                <p class="mb-5 text-gray-700 leading-none">Shoot the bloons and last as long as you can!<br>
+                    Lose a life when a bloon hits the ground.<br><br><b>You only have 3 lives ❤️</b></p>
+                <div class="text-sm text-gray-600 flex justify-center">
+                    <div class="keyboard mr-3">
+                        <img src="assets/images/bloon_hit/spacebar.png" class="mb-1">
+                        Shoot
+                    </div>
+                    <div class="keyboard ml-3">
+                        <img src="assets/images/bloon_hit/arrowkeys.png" class="mb-1">
+                        Rotate
+                    </div>
+                </div>
+            </div>
+            <div id="scoreModalDisplayEl" class="mt-4 mb-5"> <!-- style="display: block;" -->
+                <p class="mb-2 text-red-600 font-semibold" id="congratsEl">Congrats, you've hit a new high!</p>
+                <h1 class="text-4xl font-bold leading-none mt-1" id="scoreModalEl">0</h1>
+                <p class="text-lg text-black mb-1">Score</p>
+                <p class="text-sm text-gray-700">Your Best: <span id="highScoreModalEl">0</span></p>
+            </div>
+             <div>
+                 <button class="bg-black text-white w-full py-3 font-semibold rounded-full hover:bg-white hover:text-black border hover:border-black" id="startGameBtn">Start Game</button>
+             </div>
+         </div>
+         <div id="countdownEl">3</div>
+     </div>
+    <div class="fixed text-4xl font-bold bottom-0 right-0 text-white mr-3" id="powerTextEl"></div>
+    <script src="assets/js/bloon_hit.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+/* canvas{
+    display:block;
+    /* margin: 5rem; */
+    /* border: 0.5rem black solid;
+} */
+
+#scoreModalDisplayEl, #congratsEl {
+    display: none;
+}
+
+.keyboard {
+    display: inline;
+}
+
+#countdownEl {
+    font-size: 10rem;
+    font-weight: 700;
+    color: rgb(243, 71, 71);
+    text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000;
+    display: none;
+}

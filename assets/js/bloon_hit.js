@@ -1,5 +1,5 @@
 // Phaser + Matter.js
-const gameState = {score: 0, highscore: 0, hasEnded: false, balloonGenSpeed: 0, slower: false, faster: false, presentPoints: 0, balloonGenSpeedLog: 0};
+const gameState = {score: 0, highscore: 0, hasEnded: false, balloonGenSpeed: 0, slower: false, faster: false, presentPoints: 0, balloonGenSpeedLog: 0, scoreLog: 0};
 const startGameBtn = document.querySelector('#startGameBtn');
 const modalEl = document.querySelector('#modalEl');
 const scoreModalEl = document.querySelector('#scoreModalEl');
@@ -10,17 +10,18 @@ const scoreModalDisplayEl = document.querySelector('#scoreModalDisplayEl');
 const congratsEl = document.querySelector('#congratsEl');
 const powerTextEl = document.querySelector('#powerTextEl');
 const countdownEl = document.querySelector('#countdownEl');
+const leftBtn = document.querySelector('#leftBtn');
+const rightBtn = document.querySelector('#rightBtn');
+const shootBtn = document.querySelector('#shootBtn');
 const maxShooterAngle = 65;
-const heartPositions = [{x: 32, y: innerHeight - 26}, {x: 67, y: innerHeight - 26}, {x: 102, y:innerHeight - 26}];
+const heartPositions = [493, 494, 495];
 const balloonColors = ['aqua', 'blue', 'orange', 'pink', 'purple', 'red', 'yellow'];
 const powers = ['faster', 'slower', 'present'];
 let balloonGenSpeed = 3000;
 let notFirstGame = false;
-let shooter;
 let floorCount = 0;
 let confetti = {sprite: '', shape: '', scale: 0, density: 0, restitution: 0};
-let balloonsInAir = 0;
-let balloonScale = 0.35;
+let balloonScale = 0.35; // ***
 let color;
 
 function preload() {
@@ -32,23 +33,30 @@ function preload() {
 }
 
 function create() {
+    const thisGame = this;
     const thisMatter = this.matter;
     window.sprites = this.cache.json.get('sprites'); // Retrieve balloon data from loader cache
     this.matter.world.setBounds();
     this.cameras.main.setBackgroundColor('rgba(135, 245, 236, 0.7)');
 
     // Create floor
-    const floor = this.matter.add.sprite(0, 0, 'sheet', 'floor', {label: 'floor'}).setStatic(true).setPosition(innerWidth / 2, innerHeight).setScale(1.5);
+    const floor = this.matter.add.sprite(0, 0, 'sheet', 'floor', {label: 'floor'}).setStatic(true).setPosition(innerWidth / 2, innerHeight);
     floor.label = 'floor';
+    this.aGrid = new AlignGrid({scene: this, rows: 13, cols: 41});
+    // this.aGrid.showNumbers();
 
     // Create shooter semicircle
-    const semicircleShooter = this.matter.add.sprite(innerWidth / 2, innerHeight - 10, 'sheet', 'semicircleShooter', {
+    const semicircleShooter = this.matter.add.sprite(0, 0, 'sheet', 'semicircleShooter', {
         shape: sprites.semicircleShooter
-    }).setStatic(true).setDepth(1);
+    }).setStatic(true).setDepth(1); //
     gameState.semicircleShooter = semicircleShooter;
 
     // Create hearts (for lives)
-    heartPositions.forEach (heart => this.matter.add.sprite(heart.x, heart.y, 'red-heart').setScale(0.6).setStatic(true));
+    for (i = 0; i < 3; i++) {
+        let redHeart = this.matter.add.sprite(0, 0, 'red-heart').setStatic(true);
+        this.aGrid.placeAtIndex(heartPositions[i], redHeart);
+        Align.scaleToGameW(redHeart, 0.023);
+    }
 
     function restartGame() {
         generateBalloonCallback = () => {
@@ -85,11 +93,6 @@ function create() {
             countdownEl.style.display = 'none';
         }, 4000)
 
-        // // Introduce balloons after 3s
-        // setTimeout(() => {
-        //     generateBalloonCallback();
-        // }, 1000)
-
         // Start increasing speed of balloon generation every 5s after 10s into the game
         setTimeout(() => {
             window.changeBalloonGenSpeed = setInterval(() => {
@@ -104,6 +107,7 @@ function create() {
                 }
             }, 5000)
         }, 10000)
+
         // Start generating power sprites (faster, slower, present to add points) every 8s after 15s into the game
         const generatePowersTimeout = setTimeout(() => {
             window.generatePowers = setInterval(() => {
@@ -130,12 +134,11 @@ function create() {
                 } else {
                     clearInterval(generatePowers);
                 }
-            }, 20000)
+            }, 30000)
         }, 15000)
         modalEl.style.display = 'none';
         gameState.score = 0;
         gameState.hasEnded = false;
-        scoreDisplayEl.innerHTML = gameState.score;
         floorCount = 0;
         balloonGenSpeed = 3000;
         notFirstGame = true;
@@ -176,7 +179,6 @@ function create() {
                 collisionFilter: {'group': -1},
                 floor: false
             }).setScale(balloonScale);
-            balloonsInAir += 1;
             balloon.body.gameObject.hasCollided = false;
             balloon.body.gameObject.name = "balloon";
         }, 1000)
@@ -235,7 +237,9 @@ function create() {
             if (!bodyB.gameObject.hasCollided) {
                 if (floorCount < 3) {
                     bodyB.gameObject.floor = true;
-                    thisMatter.add.sprite(heartPositions[floorCount].x, heartPositions[floorCount].y, 'white-heart').setScale(0.5).setStatic(true);
+                    let whiteHeart = thisMatter.add.sprite(0, 0, 'white-heart').setStatic(true);
+                    thisGame.aGrid.placeAtIndex(heartPositions[floorCount], whiteHeart);
+                    Align.scaleToGameW(whiteHeart, 0.023);
                     floorCount += 1;
                     bodyB.gameObject.hasCollided = true;
                     if (floorCount === 3) {
@@ -256,7 +260,7 @@ function create() {
                 // Change score displayed
                 gameState.score += 20;
                 if (!gameState.hasEnded) {
-                    scoreDisplayEl.innerHTML = gameState.score;
+                    score.setText(gameState.score)
                 }
                 // Remove balloon and projectile that collided
                 bodyA.gameObject.setStatic(true);
@@ -273,7 +277,7 @@ function create() {
                 zoomout(bodyA.gameObject);
                 gameState.presentPoints = Math.floor(Math.random() * 10) * 10;
                 gameState.score += gameState.presentPoints;
-                scoreDisplayEl.innerHTML = gameState.score;
+                score.setText(gameState.score);
                 powerTextEl.innerHTML = `+${gameState.presentPoints}`;
                 setTimeout(() => {
                     if (powerTextEl.innerHTML == `+${gameState.presentPoints}`) {
@@ -321,55 +325,71 @@ function create() {
             }
         }
     });
+
+    const scoreText = this.add.text(0, 0, 'Score', {fontFamily: 'Sans-Serif', fontSize: '26px'}).setDepth(1);
+    let score = this.add.text(0, 0, gameState.score, {fontFamily: 'Sans-Serif', fontSize: '80px'}).setDepth(1);
+
+    // Align game objects to width of game - for responsiveness
+    this.aGrid.placeAtIndex(512, floor);
+    Align.scaleToGameW(floor, 1);
+    this.aGrid.placeAtIndex(512, semicircleShooter);
+    Align.scaleToGameW(semicircleShooter, 0.3);
+    this.aGrid.placeAtIndex(511, scoreText);
+    this.aGrid.placeAtIndex(470.4, score);
+    // Align.scaleToGameW(score, 0.3);
 }
 
 let spaceDown;
-let shooterRadius = 160;
+let shooterRadius = 200;
+let shootBtnClicked = false;
+let leftBtnClicked = false;
+let rightBtnClicked = false;
+
     
 function update() {
-
     this.cursors = this.input.keyboard.createCursorKeys();
-
     // Rotate shooter with left and right arrow keys
-    if (this.cursors.left.isDown) {
+    if (this.cursors.left.isDown || leftBtnClicked) {
         if (gameState.semicircleShooter.angle >= -maxShooterAngle) {
             gameState.semicircleShooter.angle -= 3.5;
         };
-    } else if (this.cursors.right.isDown) {
+    } else if (this.cursors.right.isDown || rightBtnClicked) {
         if (gameState.semicircleShooter.angle <= maxShooterAngle) {
             gameState.semicircleShooter.angle += 3.5;
         };
     }
 
     // Shoot balloons by pressing spacebar
-    if (this.cursors.space.isDown) {
+    if (this.cursors.space.isDown || shootBtnClicked == true) {
         if (spaceDown) {
             let angleX = Math.PI / 180 * (90 - gameState.semicircleShooter.angle); // Convert from degree to radians
             let angleY = Math.PI / 180 * (90 - gameState.semicircleShooter.angle); // Convert from degree to radians
         
-            let xCircleCoordinate = ( shooterRadius * Math.cos(angleX) + innerWidth / 2 ) / 2 + innerWidth / 4;
-            let yCircleCoordinate = ( shooterRadius * Math.sin(angleY + Math.PI) + innerHeight - 10 ) / 2 + innerHeight / 2.1;
+            let xCircleCoordinate = (shooterRadius * Math.cos(angleX) + 800) / 2 + 400;
+            let yCircleCoordinate = (shooterRadius * Math.sin(angleY + Math.PI) + 900) / 2 + 690;
         
             let projectile = this.matter.add.sprite(xCircleCoordinate, yCircleCoordinate, 'sheet', 'circle', {
                 shape: sprites.circle
             }).setStatic(true).setScale(0.7);
             projectile.body.gameObject.name = "projectile";
-        
-            const shoot = setInterval(() => {
+
+            const moveProjectile = setInterval(() => {
                 if (projectile.body != undefined) {
                     shooterRadius += 20;
-                    projectile.x = ( shooterRadius * Math.cos(angleX) + innerWidth / 2 ) / 2 + innerWidth / 4;
-                    projectile.y = ( shooterRadius * Math.sin(angleY + Math.PI) + innerHeight - 10 ) / 2 + innerHeight / 2.1;
-                    if (projectile.x < 0 || projectile.x > innerWidth || projectile.y < 0 || projectile.y > innerHeight) {
+                    projectile.x = (shooterRadius * Math.cos(angleX) + 800) / 2 + 400;
+                    projectile.y = (shooterRadius * Math.sin(angleY + Math.PI) + 900) / 2 + 690;
+                    if (projectile.x < 0 || projectile.x > 1600 || projectile.y < 0 || projectile.y > 1200) {
                         projectile.destroy();
-                        clearInterval(shoot);
+                        clearInterval(moveProjectile);
                     }
                 } else {
-                    clearInterval(shoot);
+                    clearInterval(moveProjectile);
                 }
             }, 10);
+
             spaceDown = false;
-            shooterRadius = 160;
+            shooterRadius = 200;
+            shootBtnClicked = false;
         }
     } else if (this.cursors.space.isUp) {
         spaceDown = true;
@@ -378,8 +398,13 @@ function update() {
 
 const config = {
     type: Phaser.AUTO,
-    width: innerWidth,
-    height: innerHeight,
+    scale: {
+        mode: Phaser.Scale.FIT,
+        parent: 'gameDisplay',
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: 1600,
+        height: 1200
+    },
     physics: {
         default: 'matter',
         matter: {
@@ -395,25 +420,3 @@ const config = {
 }
 
 const game = new Phaser.Game(config);
-var gameScene = new Phaser.Scene('game');
-// 820 x 750
-function resize() {
-    var canvas = document.querySelector("canvas");
-    var gameRatio = 820 / 750
-    if (innerWidth <= innerHeight) {
-        canvas.style.height = innerWidth / gameRatio;
-    } else {
-        canvas.style.width = innerHeight * gameRatio;
-    }
-    // if(windowRatio < gameRatio){
-    //     canvas.style.width = windowWidth + "px";
-    //     canvas.style.height = (windowWidth / gameRatio) + "px";
-    // }
-    // else{
-    //     canvas.style.width = (windowHeight * gameRatio) + "px";
-    //     canvas.style.height = windowHeight + "px";
-    // }
-}
-
-
-window.addEventListener('resize', resize);

@@ -1,11 +1,36 @@
-/* canvas{
-    display:block;
-    /* margin: 5rem; */
-    /* border: 0.5rem black solid;
-} */
+#mobileBtn {
+    display: none;
+}
+
+@media screen and (max-width: 600px) {
+    #mobileBtn {
+        display: block;
+    }
+    #desktopDisplay {
+        display: none;
+    }
+}
+@media screen and (min-width: 600px) {
+    #mobileDisplay {
+        display: none;
+    }
+}
+
+#gameDisplay {
+    width: 70rem;
+    margin: 0 auto;
+}
+
+body {
+    background-color: rgb(255, 255, 255);
+}
 
 #scoreModalDisplayEl, #congratsEl {
     display: none;
+}
+
+#startGameBtn, #leftBtn, #rightBtn, #shootBtn {
+    outline: none;
 }
 
 .keyboard {
